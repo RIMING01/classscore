@@ -8,15 +8,23 @@ export default {
       body = await request.json().catch(() => ({}));
     }
 
+    
+    import html from './index.html?raw'; 
+    export default {
+      async fetch(request, env) {
+        if (new URL(request.url).pathname === '/') {
+          return new Response(html, {
+            headers: { "Content-Type": "text/html;charset=UTF-8" }
+          });
+        }
+        return new Response("Not found", { status: 404 });
+      }
+    };
+
+    
     // =========================
     // /login - 登录接口
     // =========================
-    if (url.pathname === "/" || url.pathname === "/index.html") {
-      return new Response(await fetch("https://classscore.riming.workers.dev/index.html").then(r=>r.text()), {
-        headers: { "Content-Type": "text/html;charset=UTF-8" }
-      });
-    }
-    
     if (path === "/login") {
       const { username, password } = body;
       if (!username || !password)
