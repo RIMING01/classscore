@@ -11,6 +11,12 @@ export default {
     // =========================
     // /login - 登录接口
     // =========================
+    if (url.pathname === "/" || url.pathname === "/index.html") {
+      return new Response(await fetch("https://classscore.riming.workers.dev/index.html").then(r=>r.text()), {
+        headers: { "Content-Type": "text/html;charset=UTF-8" }
+      });
+    }
+    
     if (path === "/login") {
       const { username, password } = body;
       if (!username || !password)
