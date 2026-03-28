@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>学生分数系统</title>
+<style>
+  body { font-family: Arial, sans-serif; max-width: 500px; margin: 50px auto; }
+  input, button { margin: 5px 0; padding: 5px; width: 100%; }
+  .section { border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; }
+</style>
+</head>
+<body>
+
+<h2>学生分数系统</h2>
+
+<div class="section" id="login-section">
+  <h3>登录</h3>
+  <input type="text" id="username" placeholder="用户名">
+  <input type="password" id="password" placeholder="密码">
+  <button onclick="login()">登录</button>
+  <p id="login-msg" style="color:red"></p>
+</div>
+
+<div class="section" id="student-section" style="display:none;">
+  <h3>学生面板</h3>
+  <p id="student-score">分数: </p>
+  <button onclick="getScore()">刷新分数</button>
+</div>
+
+<div class="section" id="teacher-section" style="display:none;">
+  <h3>教师面板</h3>
+  <input type="text" id="target-student" placeholder="目标学生用户名">
+  <input type="number" id="add-score" placeholder="加分">
+  <button onclick="modifyScore()">加分</button>
+  <button onclick="getScore()">查询自己的分数</button>
+  <p id="teacher-msg" style="color:green"></p>
+</div>
+
+<script>
+let token = "";
+let role = "";
+
+const API_BASE = "https://<你的Worker域名>";
+
+async function login() {
+  const username = document.getElementById("username").value;
+  const password = document.getElementById("password").value;
+  document.getElementById("login-msg").textContent = "";
+  
+  try {
+    const res = await fetch(`${API_BASE}/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password })
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      document.getElementById("login-msg").textContent = data;
+      return;
+    }
+    token = data.token;
+    role = data.role;
+    document.getElementById("login-section").style.display = "none";
+
+    if (role === "student") {
+      document.getElementById("student-section").style.display = "block";
+      getScore();
+    } else if (role === "teacher") {
+      document.getElementById("teacher-section").style.display = "block";
+      getScore();
+    }
+  } catch (err) {
+    document.getElementById("login-msg").textContent = "登录失败";
+    console.error(err);
+  }
+}
+
+async function getScore() {
+  try {
+    const res = await fetch(`${API_BASE}/score`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({ username: document.getElementById("username").value })
+    });
+    const data = await res.json();
+    if (role === "student") {
+      document.getElementById("student-score").textContent = `分数: ${data.score}`;
+    } else if (role === "teacher") {
+      document.getElementById("teacher-msg").textContent = `你的分数: ${data.score}`;
+    }
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+async function modifyScore() {
+  const target = document.getElementById("target-student").value;
+  const delta = Number(document.getElementById("add-score").value);
+  try {
+    const res = await fetch(`${API_BASE}/modify`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({ target, delta })
+    });
+    const data = await res.json();
+    document.getElementById("teacher-msg").textContent = `操作完成，${target} 新分数: ${data.newScore}`;
+  } catch (err) {
+    console.error(err);
+  }
+}
+</script>
+
+</body>
+</html>
