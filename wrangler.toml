@@ -1,0 +1,6 @@
+name = "classscore"
+main = "main.js"   # 你的 Worker 脚本文件
+compatibility_date = "2026-03-28"
+
+# 不需要静态文件
+type = "javascript"  # 或者 "webpack" / "esbuild"，纯 JS 用 "javascript"
